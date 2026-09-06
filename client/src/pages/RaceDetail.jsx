@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Calendar, ExternalLink, MapPin, Tag } from 'lucide-react';
+import { Calendar, ExternalLink, MapPin, Tag, ShieldCheck, Ticket } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import useStore from '../store/useStore';
 import { getFallbackRaceBySlug, getDistancePrice } from '../utils/fallbackRaces';
+import { startCheckoutSession } from '../utils/checkoutSession';
+import { getMockRegistrations } from '../utils/mockStorage';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -14,6 +16,7 @@ const RaceDetail = () => {
   const [category, setCategory] = useState('');
   const [distance, setDistance] = useState('');
   const [error, setError] = useState('');
+  const [existingReg, setExistingReg] = useState(null);
 
   useEffect(() => {
     fetch(`${API_URL}/races/${encodeURIComponent(slug)}`)
@@ -34,17 +37,44 @@ const RaceDetail = () => {
       });
   }, [slug]);
 
+  // Check if user is already registered for this race
+  useEffect(() => {
+    if (!race || !user) return;
+    const token = localStorage.getItem('paceforge_token');
+
+    // Check backend registrations or local offline registrations
+    fetch(`${API_URL}/registrations/my-races`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.ok ? res.json() : [])
+      .then(list => {
+        const found = list.find(r => (r.event?.title === race.title || r.event?._id === race._id) && r.category === category && r.status !== 'CANCELLED');
+        if (found) setExistingReg(found);
+      })
+      .catch(() => {
+        const localList = getMockRegistrations();
+        const found = localList.find(r => (r.event?.title === race.title || r.event?._id === race._id) && r.category === category && r.status !== 'CANCELLED');
+        if (found) setExistingReg(found);
+      });
+  }, [race, category, user]);
+
   const currentPrice = race ? getDistancePrice(race, distance) : 0;
 
   const register = async event => {
     event.preventDefault();
     if (!user) return navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+    if (existingReg) {
+      setError('You are already registered for this race category.');
+      return;
+    }
+
     const updatedRace = { ...race, price: currentPrice };
+    startCheckoutSession(updatedRace, category, distance, currentPrice, user);
     navigate('/race-registration', { state: { race: updatedRace, category, distance, calculatedPrice: currentPrice } });
   };
 
-  if (error) return <div className="pt-32 pb-20 container mx-auto px-6 text-center"><h1 className="text-4xl font-black uppercase italic">{error}</h1><Link to="/races" className="hero-button inline-block mt-8">Back to Races</Link></div>;
-  if (!race) return <div className="pt-32 pb-20 container mx-auto px-6 text-center text-gray-500">Loading race...</div>;
+  if (error) return <div className="pt-32 pb-20 container mx-auto px-6 text-center font-ironman"><h1 className="text-4xl font-black uppercase italic">{error}</h1><Link to="/races" className="hero-button inline-block mt-8">Back to Races</Link></div>;
+  if (!race) return <div className="pt-32 pb-20 container mx-auto px-6 text-center text-gray-500 font-ironman">Loading race...</div>;
 
   return (
     <div className="pt-24 pb-12 container mx-auto px-6 font-ironman">
@@ -95,40 +125,56 @@ const RaceDetail = () => {
 
         <div className="glass-card p-8 border-t-4 border-t-primary h-fit">
           <h2 className="text-2xl font-black uppercase italic mb-6">Book Entry</h2>
-          <form onSubmit={register} className="space-y-5">
-            <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500">
-              Category
-              <select value={category} onChange={event => setCategory(event.target.value)} className="input-hero mt-2">
-                <option value={race.category}>{race.category}</option>
-              </select>
-            </label>
 
-            <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500">
-              Select Race Distance
-              <select value={distance} onChange={event => setDistance(event.target.value)} className="input-hero mt-2 py-3.5">
-                {(race.distances || []).map(item => (
-                  <option key={item} value={item} className="bg-black text-white">
-                    {item} — ₹{getDistancePrice(race, item).toLocaleString('en-IN')}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <div className="p-4 bg-white/5 rounded-xl border border-white/10 my-4">
-              <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest flex items-center gap-1.5">
-                <Tag size={13} className="text-primary" /> Entry Fee ({distance || 'Standard'})
+          {existingReg ? (
+            <div className="p-6 bg-primary/10 border border-primary/30 rounded-2xl text-center space-y-4">
+              <ShieldCheck size={36} className="text-primary mx-auto" />
+              <p className="text-primary text-xs font-black uppercase tracking-widest">
+                You are already registered for this race!
               </p>
-              <p className="text-3xl font-black italic text-primary mt-1">₹{currentPrice.toLocaleString('en-IN')}</p>
+              <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">
+                Registration ID: <strong className="text-white">{existingReg.registrationId}</strong>
+              </p>
+              <Link to={`/my-races/${existingReg.registrationId}/ticket`} className="hero-button block w-full py-3 text-xs">
+                <Ticket size={14} className="inline mr-2" /> View Digital Entry Pass
+              </Link>
             </div>
+          ) : (
+            <form onSubmit={register} className="space-y-5">
+              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500">
+                Category
+                <select value={category} onChange={event => setCategory(event.target.value)} className="input-hero mt-2">
+                  <option value={race.category}>{race.category}</option>
+                </select>
+              </label>
 
-            <p className="text-gray-400 text-xs">
-              Participant: <span className="text-white font-bold">{user?.name || 'Sign in to continue'}</span>
-            </p>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500">
+                Select Race Distance
+                <select value={distance} onChange={event => setDistance(event.target.value)} className="input-hero mt-2 py-3.5">
+                  {(race.distances || []).map(item => (
+                    <option key={item} value={item} className="bg-black text-white">
+                      {item} — ₹{getDistancePrice(race, item).toLocaleString('en-IN')}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-            <button className="hero-button w-full py-4 text-xs">
-              {user ? 'Confirm Booking & Continue' : 'Sign In to Book'}
-            </button>
-          </form>
+              <div className="p-4 bg-white/5 rounded-xl border border-white/10 my-4">
+                <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest flex items-center gap-1.5">
+                  <Tag size={13} className="text-primary" /> Entry Fee ({distance || 'Standard'})
+                </p>
+                <p className="text-3xl font-black italic text-primary mt-1">₹{currentPrice.toLocaleString('en-IN')}</p>
+              </div>
+
+              <p className="text-gray-400 text-xs">
+                Participant: <span className="text-white font-bold">{user?.name || 'Sign in to continue'}</span>
+              </p>
+
+              <button className="hero-button w-full py-4 text-xs">
+                {user ? 'Confirm Booking & Reserve Slot' : 'Sign In to Book'}
+              </button>
+            </form>
+          )}
         </div>
       </div>
     </div>

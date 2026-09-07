@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{baseUrl}}/wallet/add"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{token}}
+body:
+  type: text
+  content: |-
+    {
+      "amount": 2500,
+      "source": "UPI"
+    }
+order: 2000

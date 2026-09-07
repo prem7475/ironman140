@@ -1,0 +1,18 @@
+$kind: collection
+description: Complete Postman testing collection for PACEFORGE MERN Stack REST API endpoints including Auth, User Profile, Races, Registrations, Wallet, and Admin Control.
+variables:
+  - key: baseUrl
+    value: http://localhost:5000/api
+    disabled: false
+  - key: token
+    value: "{{json_web_token_04p0}}"
+    disabled: false
+  - key: adminToken
+    value: "{{json_web_token_0xjr}}"
+    disabled: false
+  - key: json_web_token_0xjr
+    secret: true
+    disabled: false
+  - key: json_web_token_04p0
+    secret: true
+    disabled: false

@@ -1,0 +1,5 @@
+name: Dev
+values:
+  - key: authToken
+    value: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNmE5ZDg4ZWJiMDU1ZWRmOTk2OGI5YTNmIiwicm9sZSI6IlVTRVIifSwiaWF0IjoxNzg4NzA5MTQ3LCJleHAiOjE3ODg3NDUxNDd9.ojiqIRgGNVArVvyOQEiDMmGBCIrmCGnxFa980kV0trY'
+    enabled: true

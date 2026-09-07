@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{baseUrl}}/races/tata-mumbai-marathon-2027"
+method: GET
+order: 3000

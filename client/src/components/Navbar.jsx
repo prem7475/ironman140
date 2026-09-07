@@ -195,8 +195,12 @@ const Navbar = () => {
               {user ? (
                 <div className="flex items-center space-x-3 border-l border-white/15 pl-4">
                   <Link to="/profile" className="flex items-center space-x-2 group">
-                    <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center group-hover:scale-105 transition-all shadow-lg shadow-primary/30">
-                      <UserIcon size={16} className="text-white" />
+                    <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center group-hover:scale-105 transition-all shadow-lg shadow-primary/30 overflow-hidden border border-white/10">
+                      {user.avatarUrl ? (
+                        <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <UserIcon size={16} className="text-white" />
+                      )}
                     </div>
                   </Link>
                   <button
@@ -219,7 +223,7 @@ const Navbar = () => {
               )}
             </div>
 
-            {/* Mobile Hamburger Toggle Button - Fix for phone screens */}
+            {/* Mobile Hamburger Toggle Button */}
             <button
               type="button"
               aria-label="Toggle navigation menu"
@@ -266,7 +270,7 @@ const Navbar = () => {
           )}
         </AnimatePresence>
 
-        {/* Mobile Dropdown Menu Overlay - Fixed for Touch / Mobile Phones */}
+        {/* Mobile Dropdown Menu Overlay */}
         <AnimatePresence>
           {showMobileMenu && (
             <motion.div
@@ -301,35 +305,36 @@ const Navbar = () => {
 
                 <div className="h-px bg-white/10 my-2"></div>
 
-                {/* Mobile City Selector */}
+                {/* Mobile City Selector: Auto Detect + Clean Dropdown */}
                 <div className="space-y-3">
                   <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Current Base</p>
-                  <div className="grid grid-cols-2 gap-2.5">
+                  <div className="space-y-2.5">
                     <button
                       type="button"
                       onClick={handleLocationDetect}
-                      className="col-span-2 flex items-center justify-center space-x-2 bg-primary/10 border border-primary/25 py-3 rounded-xl text-primary font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all"
+                      className="w-full flex items-center justify-center space-x-2 bg-primary/10 border border-primary/25 py-3.5 rounded-xl text-primary font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all"
                     >
                       <MapPin size={14} />
-                      <span>Auto Detect</span>
+                      <span>Auto Detect Location</span>
                     </button>
-                    {CITIES.map((city) => (
-                      <button
-                        key={city}
-                        type="button"
-                        onClick={() => {
-                          setSelectedCity(city);
+
+                    <div className="relative">
+                      <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={16} />
+                      <select
+                        value={selectedCity}
+                        onChange={(e) => {
+                          setSelectedCity(e.target.value);
                           setShowMobileMenu(false);
                         }}
-                        className={`py-2.5 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${
-                          selectedCity === city
-                            ? 'bg-primary border-primary text-white shadow-md'
-                            : 'bg-white/5 border-white/10 text-gray-300 hover:border-white/30'
-                        }`}
+                        className="w-full bg-black/60 border border-white/15 rounded-xl pl-11 pr-10 py-3.5 text-xs font-black uppercase tracking-widest text-white appearance-none cursor-pointer focus:border-primary transition-all"
                       >
-                        {city}
-                      </button>
-                    ))}
+                        <option value="Select City" className="bg-black text-white" disabled>Select Location</option>
+                        {CITIES.map((city) => (
+                          <option key={city} value={city} className="bg-black text-white">{city}</option>
+                        ))}
+                      </select>
+                      <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                    </div>
                   </div>
                 </div>
 
@@ -344,8 +349,12 @@ const Navbar = () => {
                         onClick={() => setShowMobileMenu(false)}
                         className="flex items-center space-x-4 p-4 bg-white/5 rounded-2xl border border-white/10 hover:border-primary/40 transition-all"
                       >
-                        <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shrink-0 shadow-md">
-                          <UserIcon size={20} className="text-white" />
+                        <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shrink-0 shadow-md overflow-hidden border border-white/10">
+                          {user.avatarUrl ? (
+                            <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <UserIcon size={20} className="text-white" />
+                          )}
                         </div>
                         <div className="truncate">
                           <p className="text-sm font-black uppercase italic leading-none text-white truncate">{user.name}</p>

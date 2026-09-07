@@ -1,0 +1,11 @@
+# Use this workspace to collaborate
+workspace:
+  id: 6d43cdee-1b8b-4e5f-89d0-4005cb2ca635
+
+localResources:
+  collections:
+    - ../PACEFORGE_API_Postman_Collection.json
+
+cloudResources:
+  collections:
+    ../postman/collections/PACEFORGE REST API Collection: 874636e9-2782-43fd-8612-2a3d5b16561d

@@ -52,8 +52,18 @@ exports.register = async (req, res) => {
       payload,
       process.env.JWT_SECRET,
       { expiresIn: 36000 },
-      (err, token) => {
+      async (err, token) => {
         if (err) throw err;
+
+        // Save active session token to MongoDB under user.tokens placeholder
+        try {
+          await User.findByIdAndUpdate(user.id, {
+            $push: { tokens: { token, createdAt: new Date() } }
+          });
+        } catch (dbErr) {
+          console.error('Error saving token to MongoDB:', dbErr.message);
+        }
+
         res.json({
           token,
           user: {
@@ -96,8 +106,18 @@ exports.login = async (req, res) => {
       payload,
       process.env.JWT_SECRET,
       { expiresIn: 36000 },
-      (err, token) => {
+      async (err, token) => {
         if (err) throw err;
+
+        // Save active session token to MongoDB under user.tokens placeholder
+        try {
+          await User.findByIdAndUpdate(user.id, {
+            $push: { tokens: { token, createdAt: new Date() } }
+          });
+        } catch (dbErr) {
+          console.error('Error saving token to MongoDB:', dbErr.message);
+        }
+
         res.json({
           token,
           user: {

@@ -1,0 +1,18 @@
+$kind: http-request
+url: 'http://localhost:5000/api/user/health-details'
+method: POST
+order: 1788708987914
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "height": 178,
+      "weight": 72,
+      "age": 24,
+      "gender": "male"
+    }

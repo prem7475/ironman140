@@ -5,7 +5,7 @@ import {
   Ticket, History, Calendar, Settings, Award,
   MapPin, Activity, Zap, ShieldCheck, ChevronRight,
   TrendingUp, Dna, Trophy, X, Camera, Utensils, Download,
-  User, CheckCircle2, Phone, Mail, Globe, Heart
+  User, CheckCircle2, Phone, Mail, Globe, Heart, Upload
 } from 'lucide-react';
 import useStore from '../store/useStore';
 import { getMockRegistrations, getMockWalletBalance } from '../utils/mockStorage';
@@ -132,6 +132,23 @@ const Profile = () => {
     setShowSettingsModal(false);
   };
 
+  const handleImageFileUpload = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size too large. Please select an image under 5MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target.result;
+      setEditProfileForm(prev => ({ ...prev, avatarUrl: dataUrl }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleRemovePhoto = () => {
     const updatedForm = { ...editProfileForm, avatarUrl: '' };
     setEditProfileForm(updatedForm);
@@ -157,14 +174,18 @@ const Profile = () => {
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] translate-x-1/2 -translate-y-1/2"></div>
 
         <div className="flex flex-col lg:flex-row items-center lg:items-start space-y-8 lg:space-y-0 lg:space-x-12 relative z-10">
-          <div className="relative">
+          <div className="relative group cursor-pointer" onClick={() => setShowSettingsModal(true)}>
             <div className="w-40 h-40 bg-hero-gray rounded-xl p-1 bg-gradient-to-br from-primary to-transparent shadow-2xl">
-              <div className="w-full h-full bg-hero-gray rounded-lg overflow-hidden flex items-center justify-center">
+              <div className="w-full h-full bg-hero-gray rounded-lg overflow-hidden flex items-center justify-center relative">
                 {editProfileForm.avatarUrl ? (
                   <img src={editProfileForm.avatarUrl} alt={currentAccount.name} className="w-full h-full object-cover" />
                 ) : (
                   <User size={64} className="text-gray-500" />
                 )}
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white">
+                  <Camera size={24} className="mb-1 text-primary" />
+                  <span className="text-[9px] font-black uppercase tracking-widest">Change Photo</span>
+                </div>
               </div>
             </div>
 
@@ -172,7 +193,10 @@ const Profile = () => {
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              onClick={() => setShowSettingsModal(true)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowSettingsModal(true);
+              }}
               className="absolute -bottom-2 -right-2 p-3 bg-primary rounded-xl shadow-2xl text-white hover:bg-white hover:text-primary transition-colors cursor-pointer"
               title="Edit Profile Settings"
             >
@@ -391,35 +415,82 @@ const Profile = () => {
               <h3 className="text-2xl font-black uppercase italic mb-6">Profile Settings</h3>
 
               <form onSubmit={handleSaveProfileSettings} className="space-y-4">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-16 h-16 rounded-xl bg-black/50 overflow-hidden border border-white/10 shrink-0 flex items-center justify-center">
+                {/* Photo Upload & Preview Section */}
+                <div className="flex flex-col sm:flex-row items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/10 mb-4">
+                  <div className="w-20 h-20 rounded-2xl bg-black/60 overflow-hidden border border-white/15 shrink-0 flex items-center justify-center relative group">
                     {editProfileForm.avatarUrl ? (
                       <img src={editProfileForm.avatarUrl} alt="Avatar Preview" className="w-full h-full object-cover" />
                     ) : (
-                      <User size={28} className="text-gray-500" />
+                      <User size={36} className="text-gray-500" />
                     )}
                   </div>
-                  <div className="flex-1 space-y-2">
-                    <label className="block text-[9px] font-black uppercase tracking-widest text-gray-400">Profile Photo URL</label>
+
+                  <div className="flex-1 space-y-2 text-center sm:text-left">
                     <input
-                      type="url"
-                      value={editProfileForm.avatarUrl}
-                      onChange={e => setEditProfileForm({ ...editProfileForm, avatarUrl: e.target.value })}
-                      placeholder="https://images.unsplash.com/..."
-                      className="input-hero py-2 text-xs"
+                      type="file"
+                      id="device-photo-upload"
+                      accept="image/*"
+                      onChange={handleImageFileUpload}
+                      className="hidden"
                     />
-                    {editProfileForm.avatarUrl && (
-                      <button type="button" onClick={handleRemovePhoto} className="text-primary text-[9px] font-black uppercase tracking-widest hover:underline">
-                        Remove Photo
-                      </button>
-                    )}
+
+                    <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+                      <label
+                        htmlFor="device-photo-upload"
+                        className="hero-button py-2.5 px-4 text-[10px] flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Upload size={14} /> Choose Photo from Device
+                      </label>
+
+                      {editProfileForm.avatarUrl && (
+                        <button
+                          type="button"
+                          onClick={handleRemovePhoto}
+                          className="px-3 py-2 bg-white/5 border border-white/10 hover:border-primary hover:text-primary rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-400 transition-all"
+                        >
+                          Remove Photo
+                        </button>
+                      )}
+                    </div>
+
+                    <p className="text-[9px] text-gray-500 uppercase font-black tracking-widest">
+                      Select PNG, JPG, or WEBP under 5MB
+                    </p>
                   </div>
                 </div>
 
-                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400">Full Athlete Name<input type="text" required value={editProfileForm.name} onChange={e => setEditProfileForm({ ...editProfileForm, name: e.target.value })} className="input-hero mt-1 py-3" /></label>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400">Email Address<input type="email" required value={editProfileForm.email} onChange={e => setEditProfileForm({ ...editProfileForm, email: e.target.value })} className="input-hero mt-1 py-3" /></label>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400">Phone Number<input type="tel" value={editProfileForm.phone} onChange={e => setEditProfileForm({ ...editProfileForm, phone: e.target.value })} className="input-hero mt-1 py-3" placeholder="+91 9876543210" /></label>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400">Primary City<select value={editProfileForm.city} onChange={e => setEditProfileForm({ ...editProfileForm, city: e.target.value })} className="input-hero mt-1 py-3"><option value="Mumbai" className="bg-black">Mumbai</option><option value="Delhi" className="bg-black">Delhi</option><option value="Bangalore" className="bg-black">Bangalore</option><option value="Pune" className="bg-black">Pune</option><option value="Chennai" className="bg-black">Chennai</option><option value="Hyderabad" className="bg-black">Hyderabad</option></select></label>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400">Photo Web URL (Optional Override)
+                  <input
+                    type="url"
+                    value={editProfileForm.avatarUrl}
+                    onChange={e => setEditProfileForm({ ...editProfileForm, avatarUrl: e.target.value })}
+                    placeholder="https://images.unsplash.com/..."
+                    className="input-hero mt-1 py-3 text-xs"
+                  />
+                </label>
+
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400">Full Athlete Name
+                  <input type="text" required value={editProfileForm.name} onChange={e => setEditProfileForm({ ...editProfileForm, name: e.target.value })} className="input-hero mt-1 py-3" />
+                </label>
+
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400">Email Address
+                  <input type="email" required value={editProfileForm.email} onChange={e => setEditProfileForm({ ...editProfileForm, email: e.target.value })} className="input-hero mt-1 py-3" />
+                </label>
+
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400">Phone Number
+                  <input type="tel" value={editProfileForm.phone} onChange={e => setEditProfileForm({ ...editProfileForm, phone: e.target.value })} className="input-hero mt-1 py-3" placeholder="+91 9876543210" />
+                </label>
+
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400">Primary City
+                  <select value={editProfileForm.city} onChange={e => setEditProfileForm({ ...editProfileForm, city: e.target.value })} className="input-hero mt-1 py-3">
+                    <option value="Mumbai" className="bg-black">Mumbai</option>
+                    <option value="Delhi" className="bg-black">Delhi</option>
+                    <option value="Bangalore" className="bg-black">Bangalore</option>
+                    <option value="Pune" className="bg-black">Pune</option>
+                    <option value="Chennai" className="bg-black">Chennai</option>
+                    <option value="Hyderabad" className="bg-black">Hyderabad</option>
+                  </select>
+                </label>
 
                 <button className="hero-button w-full mt-4 py-4 text-xs">Save Profile Changes</button>
               </form>

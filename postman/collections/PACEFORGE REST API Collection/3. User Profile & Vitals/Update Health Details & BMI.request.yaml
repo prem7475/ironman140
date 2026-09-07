@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{baseUrl}}/user/health-details"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{token}}
+body:
+  type: text
+  content: |-
+    {
+      "height": 178,
+      "weight": 72,
+      "age": 24,
+      "gender": "male"
+    }
+order: 2000

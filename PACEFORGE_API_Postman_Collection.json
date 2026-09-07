@@ -1,0 +1,231 @@
+{
+  "info": {
+    "_postman_id": "paceforge-api-v1-collection",
+    "name": "PACEFORGE REST API Collection",
+    "description": "Complete Postman testing collection for PACEFORGE MERN Stack REST API endpoints including Auth, User Profile, Races, Registrations, Wallet, and Admin Control.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjZlMDFhMmIzYzRkNWU2ZjdhOGI5YzBkIiwicm9sZSI6IlVTRVIifSwiaWF0IjoxNzg4NzA5OTkyLCJleHAiOjE3OTEzMDE5OTJ9.IGqy605CIm77kGvziwMUzmRyce3XfSlRSGhf5alHkKc",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjZlMDFhMmIzYzRkNWU2ZjdhOGI5YzBlIiwicm9sZSI6IkFETUlOIn0sImlhdCI6MTc4ODcwOTk5MiwiZXhwIjoxNzkxMzAxOTkyfQ.ADBthxggUtzNb2RVQ5m31SkrtJJ09p5OmFy0l-rvhnI",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Register Athlete Account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.token) {",
+                  "    pm.collectionVariables.set('token', jsonData.token);",
+                  "    console.log('Captured JWT Token:', jsonData.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Prem Narayani\",\n  \"email\": \"prem.narayani@paceforge.com\",\n  \"password\": \"password123\",\n  \"phone\": \"+91 9876543210\",\n  \"nationality\": \"Indian\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login Athlete Account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.token) {",
+                  "    pm.collectionVariables.set('token', jsonData.token);",
+                  "    console.log('Captured JWT Token:', jsonData.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"prem.narayani@paceforge.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Races & Events",
+      "item": [
+        {
+          "name": "Get All Races",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/races",
+              "host": ["{{baseUrl}}"],
+              "path": ["races"]
+            }
+          }
+        },
+        {
+          "name": "Get Races by Category (Marathon)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/races/category/Marathon",
+              "host": ["{{baseUrl}}"],
+              "path": ["races", "category", "Marathon"]
+            }
+          }
+        },
+        {
+          "name": "Get Race by Slug",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/races/tata-mumbai-marathon-2027",
+              "host": ["{{baseUrl}}"],
+              "path": ["races", "tata-mumbai-marathon-2027"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. User Profile & Vitals",
+      "item": [
+        {
+          "name": "Get Current Profile (Me)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "me"]
+            }
+          }
+        },
+        {
+          "name": "Update Health Details & BMI",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"height\": 178,\n  \"weight\": 72,\n  \"age\": 24,\n  \"gender\": \"male\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/health-details",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "health-details"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Wallet System",
+      "item": [
+        {
+          "name": "Get User Wallet Balance & Ledger",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/wallet",
+              "host": ["{{baseUrl}}"],
+              "path": ["wallet"]
+            }
+          }
+        },
+        {
+          "name": "Add Money to Wallet",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 2500,\n  \"source\": \"UPI\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/wallet/add",
+              "host": ["{{baseUrl}}"],
+              "path": ["wallet", "add"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Admin Control Room",
+      "item": [
+        {
+          "name": "Get Admin Dashboard & Athlete List",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/dashboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "dashboard"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

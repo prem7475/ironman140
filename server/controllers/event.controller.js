@@ -59,10 +59,12 @@ exports.getEvent = async (req, res) => {
   }
 };
 
-// Admin handlers
+// Admin handlers with WebSocket Real-Time Event Emits
 exports.createEvent = async (req, res) => {
   try {
     const event = await Event.create(req.body);
+    const io = req.app.get('io');
+    if (io) io.emit('race_created', event);
     res.status(201).json(event);
   } catch (err) {
     console.error(err.message);
@@ -74,6 +76,8 @@ exports.updateEvent = async (req, res) => {
   try {
     const event = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
     if (!event) return res.status(404).json({ msg: 'Race not found' });
+    const io = req.app.get('io');
+    if (io) io.emit('race_updated', event);
     res.json(event);
   } catch (err) {
     console.error(err.message);
@@ -85,6 +89,8 @@ exports.deleteEvent = async (req, res) => {
   try {
     const event = await Event.findByIdAndDelete(req.params.id);
     if (!event) return res.status(404).json({ msg: 'Race not found' });
+    const io = req.app.get('io');
+    if (io) io.emit('race_deleted', { id: req.params.id });
     res.json({ success: true });
   } catch (err) {
     console.error(err.message);

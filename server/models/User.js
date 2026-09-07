@@ -20,6 +20,10 @@ const UserSchema = new mongoose.Schema({
     reference: { type: String },
     createdAt: { type: Date, default: Date.now }
   }],
+  tokens: [{
+    token: { type: String },
+    createdAt: { type: Date, default: Date.now }
+  }],
   city: { type: String },
   healthDetails: {
     height: { type: Number }, // in cm

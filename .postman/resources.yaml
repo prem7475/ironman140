@@ -6,6 +6,8 @@ localResources:
   collections:
     - ../PACEFORGE_API_Postman_Collection.json
 
+# Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
+
 cloudResources:
   collections:
     ../postman/collections/PACEFORGE REST API Collection: 874636e9-2782-43fd-8612-2a3d5b16561d

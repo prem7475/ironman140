@@ -22,6 +22,13 @@ exports.upgradeMembership = async (req, res) => {
   }
   try {
     const user = await User.findByIdAndUpdate(req.user.id, { membershipStatus: 'ACTIVE', membershipPrice: 4999 }, { new: true }).select('-password');
+
+    // Emit Real-Time WebSocket Event
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('user_updated', { userId: req.user.id, user });
+    }
+
     res.json({ msg: 'Premium membership activated successfully', user });
   } catch (err) {
     console.error(err.message);
@@ -60,6 +67,12 @@ exports.updateHealthDetails = async (req, res) => {
       { new: true }
     );
 
+    // Emit Real-Time WebSocket Event
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('user_updated', { userId: req.user.id, user });
+    }
+
     res.json(user.healthDetails);
   } catch (err) {
     console.error(err.message);
@@ -79,7 +92,21 @@ exports.getVo2Max = async (req, res) => {
 
   try {
     const vo2Max = Number(((distanceMeters - 504.9) / 44.73).toFixed(1));
-    const user = await User.findByIdAndUpdate(req.user.id, { $set: { 'healthDetails.vo2Max': vo2Max, 'healthDetails.vo2MaxUpdatedAt': new Date() }, $push: { 'healthDetails.vo2MaxHistory': { value: vo2Max, date: new Date() } } }, { new: true });
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        $set: { 'healthDetails.vo2Max': vo2Max, 'healthDetails.vo2MaxUpdatedAt': new Date() },
+        $push: { 'healthDetails.vo2MaxHistory': { value: vo2Max, date: new Date() } }
+      },
+      { new: true }
+    );
+
+    // Emit Real-Time WebSocket Event
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('user_updated', { userId: req.user.id, user });
+    }
+
     res.json({ vo2Max, updatedAt: user.healthDetails.vo2MaxUpdatedAt });
   } catch (err) {
     console.error(err.message);

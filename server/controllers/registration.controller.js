@@ -49,7 +49,15 @@ exports.registerForRace = async (req, res) => {
     const totalAmount = amount + tax + extraCharges;
     const walletAmount = Math.min(Number(user.walletBalance || 0), totalAmount);
     const externalAmount = totalAmount - walletAmount;
-    await User.findOneAndUpdate({ _id: user.id, walletBalance: { $gte: walletAmount } }, { $inc: { walletBalance: -walletAmount }, $push: { walletTransactions: { type: 'DEBIT', amount: walletAmount, source: 'RACE_REGISTRATION', reference: registrationId } } });
+
+    await User.findOneAndUpdate(
+      { _id: user.id, walletBalance: { $gte: walletAmount } },
+      {
+        $inc: { walletBalance: -walletAmount },
+        $push: { walletTransactions: { type: 'DEBIT', amount: walletAmount, source: 'RACE_REGISTRATION', reference: registrationId } }
+      }
+    );
+
     const ticket = await Ticket.create({
       user: user.id,
       event: event.id,
@@ -77,6 +85,19 @@ exports.registerForRace = async (req, res) => {
     });
 
     await User.findByIdAndUpdate(user.id, { $addToSet: { registeredEvents: event.id } });
+
+    // Emit Real-Time WebSocket Event to all connected clients
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('race_registered', {
+        registrationId,
+        raceName: event.title,
+        participantName: ticket.participant.name || user.name,
+        category,
+        date: new Date().toISOString()
+      });
+    }
+
     res.status(201).json(ticket);
   } catch (err) {
     if (err.code === 11000) {

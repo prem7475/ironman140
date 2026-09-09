@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowDownToLine, ArrowUpFromLine, CheckCircle2, Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, ShieldCheck } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine, CheckCircle2, Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, ShieldCheck, Radio } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import QRCode from 'qrcode';
 import api from '../services/api';
 import useStore from '../store/useStore';
+import { useSocket } from '../hooks/useSocket';
 import {
   getMockWalletBalance,
   updateMockWalletBalance,
@@ -15,6 +16,8 @@ const sources = ['UPI', 'CREDIT_CARD', 'DEBIT_CARD', 'NET_BANKING'];
 
 const Wallet = () => {
   const user = useStore(state => state.user);
+  const { socket, connected } = useSocket();
+
   const [data, setData] = useState({ walletBalance: 0, walletTransactions: [] });
   const [amount, setAmount] = useState('');
   const [source, setSource] = useState('UPI');
@@ -32,7 +35,6 @@ const Wallet = () => {
         });
       })
       .catch(() => {
-        // Unique per-user offline mock storage (Starts at ₹0 for new user accounts)
         const userEmail = user?.email;
         setData({
           walletBalance: getMockWalletBalance(userEmail),
@@ -44,6 +46,25 @@ const Wallet = () => {
   useEffect(() => {
     loadWallet();
   }, [user]);
+
+  // Real-Time WebSocket Wallet Listener
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on('wallet_updated', (payload) => {
+      const currentUserId = user?.id || user?._id;
+      if (payload.userId === currentUserId) {
+        setData({
+          walletBalance: payload.walletBalance,
+          walletTransactions: payload.walletTransactions
+        });
+      }
+    });
+
+    return () => {
+      socket.off('wallet_updated');
+    };
+  }, [socket, user]);
 
   const generateQr = async () => {
     setQr(await QRCode.toDataURL(JSON.stringify({
@@ -72,7 +93,6 @@ const Wallet = () => {
       setQr('');
       loadWallet();
     } catch {
-      // Per-user offline mock transaction when backend API is offline
       const userEmail = user?.email;
       const type = mode === 'add' ? 'CREDIT' : 'DEBIT';
       const newBal = updateMockWalletBalance(userEmail, numAmount, type);
@@ -104,7 +124,14 @@ const Wallet = () => {
 
       <div className="mt-4 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <p className="text-primary text-[10px] font-black uppercase tracking-[0.3em]">Encrypted Financial Hub</p>
+          <div className="flex items-center gap-3">
+            <span className="text-primary text-[10px] font-black uppercase tracking-[0.3em]">Encrypted Financial Hub</span>
+            {connected && (
+              <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest flex items-center gap-1.5 animate-pulse">
+                <Radio size={12} /> WebSockets Live
+              </span>
+            )}
+          </div>
           <h1 className="text-4xl sm:text-5xl font-black uppercase italic tracking-tighter mt-1">
             Athlete <span className="text-primary">Wallet</span>
           </h1>
@@ -190,8 +217,8 @@ const Wallet = () => {
 
         {qr && (
           <div className="p-4 bg-white/5 rounded-2xl border border-white/10 text-center">
-            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">Scan Mock Payment QR</p>
-            <img src={qr} alt="Mock wallet funding QR" className="w-48 h-48 bg-white p-2 mx-auto rounded-xl shadow-xl" />
+            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">Scan Payment QR</p>
+            <img src={qr} alt="Wallet funding QR" className="w-48 h-48 bg-white p-2 mx-auto rounded-xl shadow-xl" />
           </div>
         )}
 

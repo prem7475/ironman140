@@ -27,28 +27,17 @@ const Login = () => {
       navigate(redirectPath);
     } catch (err) {
       if (!err.response) {
-        // Fallback for local offline signin when backend API is unreachable on Netlify
-        const offlineUser = {
-          id: `athlete-${Date.now().toString(36)}`,
-          name: (formData.email.split('@')[0] || 'ATHLETE').toUpperCase(),
-          email: formData.email,
-          role: 'USER',
-          membershipStatus: 'ACTIVE',
-          walletBalance: 5000
-        };
-        localStorage.setItem('paceforge_token', 'paceforge-offline-token');
-        setUser(offlineUser);
-        navigate(redirectPath);
-        return;
+        setError('Backend server on port 5000 is unreachable. Please make sure your server is running (npm start in server directory).');
+      } else {
+        setError(err.response?.data?.msg || 'Invalid credentials. Check your identity and key.');
       }
-      setError(err.response?.data?.msg || 'Invalid credentials. Check your identity and key.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="pt-24 pb-12 min-h-screen flex items-center justify-center px-4 md:px-6 relative overflow-hidden">
+    <div className="pt-24 pb-12 min-h-screen flex items-center justify-center px-4 md:px-6 relative overflow-hidden font-ironman">
       {/* Video Background */}
       <div className="absolute inset-0 z-0">
         <video autoPlay loop muted playsInline className="w-full h-full object-cover">
@@ -76,7 +65,7 @@ const Login = () => {
               <motion.div
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="mb-6 p-4 bg-primary/10 border border-primary/20 rounded-md text-primary text-[11px] font-black uppercase tracking-widest text-center"
+                className="mb-6 p-4 bg-primary/10 border border-primary/20 rounded-xl text-primary text-[11px] font-black uppercase tracking-widest text-center"
               >
                 {error}
               </motion.div>
@@ -93,6 +82,7 @@ const Login = () => {
                     placeholder="ENTER REGISTERED EMAIL"
                     required
                     disabled={loading}
+                    value={formData.email}
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
                   />
                 </div>
@@ -108,6 +98,7 @@ const Login = () => {
                     placeholder="••••••••"
                     required
                     disabled={loading}
+                    value={formData.password}
                     onChange={(e) => setFormData({...formData, password: e.target.value})}
                   />
                 </div>

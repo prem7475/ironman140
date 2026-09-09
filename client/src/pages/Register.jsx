@@ -43,31 +43,17 @@ const Register = () => {
       else navigate('/profile');
     } catch (err) {
       if (!err.response) {
-        // Fallback for local offline registration when backend API is unreachable on Netlify
-        const offlineUser = {
-          id: `athlete-${Date.now().toString(36)}`,
-          name: formData.name || 'ATHLETE',
-          email: formData.email,
-          phone: formData.phone,
-          nationality: formData.nationality,
-          role: 'USER',
-          membershipStatus: formType === 'membership' ? 'ACTIVE' : 'FREE',
-          walletBalance: 5000
-        };
-        localStorage.setItem('paceforge_token', 'paceforge-offline-token');
-        setUser(offlineUser);
-        if (formType === 'membership') setShowSuccess(true);
-        else navigate('/profile');
-        return;
+        setError('Backend server on port 5000 is unreachable. Please make sure your server is running (npm start in server directory).');
+      } else {
+        setError(err.response?.data?.msg || 'Unable to register account. Please try again.');
       }
-      setError(err.response?.data?.msg || 'Unable to initialize account. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="pt-24 lg:pt-32 pb-12 lg:pb-20 min-h-screen flex items-center justify-center px-4 lg:px-6 relative">
+    <div className="pt-24 lg:pt-32 pb-12 lg:pb-20 min-h-screen flex items-center justify-center px-4 lg:px-6 relative font-ironman">
       {/* Video Background */}
       <div className="absolute inset-0 z-0">
         <video autoPlay loop muted playsInline className="w-full h-full object-cover">
@@ -101,6 +87,7 @@ const Register = () => {
             <div className="space-y-4 relative z-10">
               <button
                 disabled={loading}
+                type="button"
                 onClick={() => setFormType('membership')}
                 className={`w-full p-4 lg:p-5 rounded-xl border transition-all text-left group ${formType === 'membership' ? 'bg-primary border-primary shadow-[0_0_30px_rgba(225,6,0,0.3)]' : 'bg-white/5 border-white/10 hover:border-primary/50'}`}
               >
@@ -114,6 +101,7 @@ const Register = () => {
 
               <button
                 disabled={loading}
+                type="button"
                 onClick={() => setFormType('basic')}
                 className={`w-full p-4 lg:p-5 rounded-xl border transition-all text-left group ${formType === 'basic' ? 'bg-primary border-primary shadow-[0_0_30px_rgba(225,6,0,0.3)]' : 'bg-white/5 border-white/10 hover:border-primary/50'}`}
               >
@@ -140,7 +128,7 @@ const Register = () => {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-8 p-4 bg-primary/10 border border-primary/20 rounded-md text-primary text-[11px] font-black uppercase tracking-widest text-center"
+                className="mb-8 p-4 bg-primary/10 border border-primary/20 rounded-xl text-primary text-[11px] font-black uppercase tracking-widest text-center"
               >
                 {error}
               </motion.div>

@@ -273,6 +273,14 @@ const Admin = () => {
             )}
 
             <form onSubmit={handleAdminLogin} className="space-y-6">
+              <button
+                type="button"
+                onClick={() => setCredentials({ email: 'admin@paceforge.com', password: 'adminpassword123' })}
+                className="w-full py-2.5 bg-white/5 border border-white/10 hover:border-primary/40 rounded-xl text-[10px] font-black uppercase tracking-widest text-primary transition-all flex items-center justify-center gap-2"
+              >
+                <Zap size={14} /> Auto-Fill Demo Admin Credentials
+              </button>
+
               <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500">
                 Admin Email
                 <div className="relative mt-2">

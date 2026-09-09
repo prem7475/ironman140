@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, ShieldCheck, Zap, Globe, Activity } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { GoogleLogin } from '@react-oauth/google';
 import useStore from '../store/useStore';
 import { authService } from '../services/api';
 
@@ -31,6 +32,38 @@ const Login = () => {
       } else {
         setError(err.response?.data?.msg || 'Invalid credentials. Check your identity and key.');
       }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setLoading(true);
+    setError('');
+    try {
+      const token = credentialResponse.credential;
+      let email = 'google.athlete@paceforge.com';
+      let name = 'Google Athlete';
+
+      if (token) {
+        try {
+          const base64Url = token.split('.')[1];
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+          const payload = JSON.parse(jsonPayload);
+          if (payload.email) email = payload.email;
+          if (payload.name) name = payload.name;
+        } catch (e) {
+          console.error('JWT Parse Error:', e);
+        }
+      }
+
+      const response = await authService.googleAuth({ email, name });
+      localStorage.setItem('paceforge_token', response.data.token);
+      setUser(response.data.user);
+      navigate(redirectPath);
+    } catch (err) {
+      setError(err.response?.data?.msg || 'Google Authentication failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -122,26 +155,28 @@ const Login = () => {
 
           {/* Right Column: Social Links */}
           <div className="flex-1 p-8 md:p-14 bg-black/40 backdrop-blur-sm flex flex-col justify-center">
-            <div className="mb-10 text-center md:text-left">
+            <div className="mb-8 text-center md:text-left">
               <h2 className="text-2xl font-black uppercase italic tracking-tighter mb-2">
                 Quick <span className="text-primary">Sync</span>
               </h2>
-              <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.4em]">Connect with Platforms</p>
+              <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.4em]">OAuth Identity Verification</p>
             </div>
 
             <div className="space-y-4">
-              <button className="w-full flex items-center justify-between px-6 py-4 bg-white/5 border border-white/10 rounded-md hover:bg-white hover:text-black transition-all group">
-                <div className="flex items-center space-x-4">
-                  <Globe size={20} className="text-primary group-hover:text-black" />
-                  <span className="text-[11px] font-black uppercase tracking-widest">Continue with Google</span>
-                </div>
-                <ArrowRight size={16} className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
-              </button>
+              <div className="w-full flex justify-center py-2 bg-white/5 rounded-2xl border border-white/10 p-2">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => setError('Google Sign-In failed or was cancelled.')}
+                  theme="filled_black"
+                  shape="pill"
+                  text="continue_with"
+                />
+              </div>
 
-              <button className="w-full flex items-center justify-between px-6 py-4 bg-[#FC4C02]/10 border border-[#FC4C02]/20 rounded-md hover:bg-[#FC4C02] hover:text-white transition-all group">
+              <button className="w-full flex items-center justify-between px-6 py-3.5 bg-[#FC4C02]/10 border border-[#FC4C02]/20 rounded-full hover:bg-[#FC4C02] hover:text-white transition-all group">
                 <div className="flex items-center space-x-4">
-                  <Activity size={20} className="text-[#FC4C02] group-hover:text-white" />
-                  <span className="text-[11px] font-black uppercase tracking-widest">Connect Strava</span>
+                  <Activity size={18} className="text-[#FC4C02] group-hover:text-white" />
+                  <span className="text-[11px] font-black uppercase tracking-widest">Connect Strava Sync</span>
                 </div>
                 <ArrowRight size={16} className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
               </button>

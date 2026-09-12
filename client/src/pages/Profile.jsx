@@ -171,7 +171,14 @@ const Profile = () => {
         animate={{ opacity: 1, y: 0 }}
         className="glass-card p-6 md:p-8 mb-10 relative overflow-hidden !rounded-2xl border-none shadow-[0_40px_100px_rgba(0,0,0,0.5)]"
       >
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] translate-x-1/2 -translate-y-1/2"></div>
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <img
+            src="/PACEFORGE_PREM2.png"
+            alt="PACEFORGE Profile Background"
+            className="w-full h-full object-cover object-center filter contrast-[1.1] brightness-[0.35] opacity-50"
+          />
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
+        </div>
 
         <div className="flex flex-col lg:flex-row items-center lg:items-start space-y-8 lg:space-y-0 lg:space-x-12 relative z-10">
           <div className="relative group cursor-pointer" onClick={() => setShowSettingsModal(true)}>

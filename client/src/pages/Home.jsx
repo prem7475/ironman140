@@ -86,7 +86,18 @@ const Home = () => {
   return (
     <div className="pt-20 font-ironman">
       <Hero selectedCity={selectedCity} />
-      <div className="px-6 md:px-10 py-12"><ScrollExpand src="/herosection.png" alt="PaceForge endurance athlete" title="Find your finish line"><p className="text-sm md:text-base font-bold uppercase tracking-[0.2em] text-white/80">Real races. Serious preparation. One place to go further.</p></ScrollExpand></div>
+      <div className="px-6 md:px-10 py-12">
+        <ScrollExpand
+          src="/PACEFORGE_PREM2_landscape.png"
+          mobileSrc="/PACEFORGE_PREM_middle_portrait.png"
+          alt="PaceForge Better Than Yesterday"
+          title="Find your finish line"
+        >
+          <p className="text-sm md:text-base font-bold uppercase tracking-[0.2em] text-white/80">
+            Real races. Serious preparation. One place to go further.
+          </p>
+        </ScrollExpand>
+      </div>
 
       <NewsIntel
         newsScrollRef={newsScrollRef}
